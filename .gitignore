@@ -1,0 +1,11 @@
+# Visual Studio
+.vs/
+bin/
+obj/
+
+# OS
+.DS_Store
+
+# User-specific
+*.user
+*.suo
