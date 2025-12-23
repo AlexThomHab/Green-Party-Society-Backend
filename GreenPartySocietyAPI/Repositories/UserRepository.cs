@@ -1,4 +1,6 @@
-﻿using GreenPartySocietyAPI.Models;
+﻿using GreenPartySocietyAPI.Data;
+using GreenPartySocietyAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace GreenPartySocietyAPI.Repositories;
 
@@ -9,29 +11,37 @@ public interface IUserRepository
     Task<User?> GetByEmailAsync(string email);
     Task<User?> GetByIdAsync(string id);
 }
+
 public class UserRepository : IUserRepository
 {
-    //private readonly AppDbContext _db; TODO: ADD THIS BACK IN
+    private readonly AppDbContext _db;
 
-    public UserRepository()
+    public UserRepository(AppDbContext db)
     {
+        _db = db;
     }
 
     public async Task<bool> ExistsByEmail(string email)
     {
-        return true;
+        return await _db.Users.AnyAsync(u => u.Email == email);
     }
+
     public async Task<User> AddUserAsync(User user)
     {
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
         return user;
     }
+
     public async Task<User?> GetByEmailAsync(string email)
     {
-        return new User(){Email = "testUser"};
+        return await _db.Users
+            .FirstOrDefaultAsync(u => u.Email == email);
     }
 
     public async Task<User?> GetByIdAsync(string id)
     {
-        return new User() { Email = "testUser" };
+        return await _db.Users
+            .FirstOrDefaultAsync(u => u.Id == id);
     }
 }
