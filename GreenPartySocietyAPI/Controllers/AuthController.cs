@@ -1,6 +1,5 @@
 ﻿using GreenPartySocietyAPI.Models;
 using GreenPartySocietyAPI.Services;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GreenPartySocietyAPI.Controllers;
@@ -29,17 +28,8 @@ public class AuthController : ControllerBase
             var result = await _userService.AuthenticateAsync(email, password);
 
             if (!result.Success)
-            {
-                var message = result.Error ?? "Invalid credentials.";
+                return Unauthorized(new ProblemDetails { Title = "Unauthorized", Detail = "Invalid email or password." });
 
-                var isAuthFailure = message.Contains("does not exist")
-                                    || message.Contains("invalid email or password");
-
-                if (isAuthFailure)
-                    return Unauthorized(new ProblemDetails { Title = "Unauthorized", Detail = message });
-
-                return BadRequest(new ProblemDetails { Title = "Validation Error", Detail = message });
-            }
 
             var user = result.Data!;
             var token = _jwtService.Generate(

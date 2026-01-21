@@ -80,15 +80,10 @@ public class UserService : IUserService
 
     public async Task<ServiceResult<AuthResult>> AuthenticateAsync(string email, string password)
     {
-        //if (!ValidateEmailFormat(email))
-        //    return ServiceResult<AuthResult>.BadRequest("Invalid email format.");
-
         var user = await _userRepository.GetByEmailAsync(email);
-        if (user is null)
-            return ServiceResult<AuthResult>.BadRequest("User does not exist.");
 
-        if (!_passwordHasher.Verify(user.Password, password))
-            return ServiceResult<AuthResult>.BadRequest("Invalid email or password.");
+        if (user is null || !_passwordHasher.Verify(user.Password, password))
+            return ServiceResult<AuthResult>.Unauthorized("Invalid email or password.");
 
         return ServiceResult<AuthResult>.Ok(new AuthResult
         {
@@ -97,8 +92,8 @@ public class UserService : IUserService
             FirstName = user.FirstName,
             LastName = user.LastName
         });
-
     }
+
 
     public async Task<ServiceResult<GetUserDetailsResponse>> GetUserDetailsAsync(string jwt)
     {
@@ -208,4 +203,6 @@ public class ServiceResult<T>
 
     public static ServiceResult<T> Ok(T? data) => new(true, data, null);
     public static ServiceResult<T> BadRequest(string error) => new(false, default, error);
+    public static ServiceResult<T> Unauthorized(string error) => new(false, default, error);
+
 }
