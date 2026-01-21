@@ -7,11 +7,11 @@ public sealed class Event
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
 
-    public DateTimeOffset StartsAt { get; set; }
-    public DateTimeOffset? EndsAt { get; set; }
+    public DateTime StartsAtUtc { get; set; }
+    public DateTime? EndsAtUtc { get; set; }
 
     public string Location { get; set; } = "";
 
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
 }

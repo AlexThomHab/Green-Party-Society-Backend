@@ -29,7 +29,7 @@ public sealed class EventsController : ControllerBase
         return Ok(result.Data);
     }
     [HttpGet("range")]
-    public async Task<ActionResult<IReadOnlyList<EventDto>>> Range([FromQuery] DateTimeOffset from, [FromQuery] DateTimeOffset to)
+    public async Task<ActionResult<IReadOnlyList<EventDto>>> Range([FromQuery] DateTime from, [FromQuery] DateTime to)
     {
         var result = await _service.ListRangeAsync(from, to);
         if (!result.Success)

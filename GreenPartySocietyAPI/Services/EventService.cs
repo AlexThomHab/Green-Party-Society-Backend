@@ -7,7 +7,7 @@ public interface IEventService
 {
     Task<ServiceResult<EventDto>> GetByIdAsync(string id);
     Task<ServiceResult<IReadOnlyList<EventDto>>> ListUpcomingAsync(int take);
-    Task<ServiceResult<IReadOnlyList<EventDto>>> ListRangeAsync(DateTimeOffset from, DateTimeOffset to);
+    Task<ServiceResult<IReadOnlyList<EventDto>>> ListRangeAsync(DateTime from, DateTime to);
 
     Task<ServiceResult<EventDto>> CreateAsync(CreateEventRequest request);
     Task<ServiceResult<EventDto>> UpdateAsync(string id, UpdateEventRequest request);
@@ -35,11 +35,11 @@ public sealed class EventService : IEventService
     public async Task<ServiceResult<IReadOnlyList<EventDto>>> ListUpcomingAsync(int take)
     {
         take = Math.Clamp(take, 1, 100);
-        var items = await _repo.ListUpcomingAsync(DateTimeOffset.UtcNow, take);
+        var items = await _repo.ListUpcomingAsync(DateTime.UtcNow, take);
         return ServiceResult<IReadOnlyList<EventDto>>.Ok(items.Select(ToDto).ToList());
     }
 
-    public async Task<ServiceResult<IReadOnlyList<EventDto>>> ListRangeAsync(DateTimeOffset from, DateTimeOffset to)
+    public async Task<ServiceResult<IReadOnlyList<EventDto>>> ListRangeAsync(DateTime from, DateTime to)
     {
         if (to < from)
             return ServiceResult<IReadOnlyList<EventDto>>.BadRequest("'to' must be >= 'from'");
@@ -58,11 +58,11 @@ public sealed class EventService : IEventService
         {
             Title = request.Title.Trim(),
             Description = (request.Description ?? "").Trim(),
-            StartsAt = request.StartsAt,
-            EndsAt = request.EndsAt,
+            StartsAtUtc = request.StartsAt,
+            EndsAtUtc = request.EndsAt,
             Location = (request.Location ?? "").Trim(),
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
         };
 
         var created = await _repo.AddAsync(ev);
@@ -114,8 +114,8 @@ public sealed class EventService : IEventService
         Id = e.Id,
         Title = e.Title,
         Description = e.Description,
-        StartsAt = e.StartsAt,
-        EndsAt = e.EndsAt,
+        StartsAt = e.StartsAtUtc,
+        EndsAt = e.EndsAtUtc,
         Location = e.Location
     };
 }
@@ -125,8 +125,8 @@ public sealed class EventDto
     public string Id { get; set; } = "";
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
-    public DateTimeOffset StartsAt { get; set; }
-    public DateTimeOffset? EndsAt { get; set; }
+    public DateTime StartsAt { get; set; }
+    public DateTime? EndsAt { get; set; }
     public string Location { get; set; } = "";
 }
 
@@ -134,8 +134,8 @@ public sealed class CreateEventRequest
 {
     public string Title { get; set; } = "";
     public string? Description { get; set; }
-    public DateTimeOffset StartsAt { get; set; }
-    public DateTimeOffset? EndsAt { get; set; }
+    public DateTime StartsAt { get; set; }
+    public DateTime? EndsAt { get; set; }
     public string? Location { get; set; }
 }
 

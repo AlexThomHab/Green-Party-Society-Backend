@@ -9,8 +9,8 @@ public interface IEventRepository
     Task<Event?> GetByIdAsync(string id);
     Task<Event?> GetTrackedByIdAsync(string id);
 
-    Task<IReadOnlyList<Event>> ListUpcomingAsync(DateTimeOffset fromInclusive, int take);
-    Task<IReadOnlyList<Event>> ListRangeAsync(DateTimeOffset fromInclusive, DateTimeOffset toInclusive);
+    Task<IReadOnlyList<Event>> ListUpcomingAsync(DateTime fromInclusiveUtc, int take);
+    Task<IReadOnlyList<Event>> ListRangeAsync(DateTime fromInclusiveUtc, DateTime toInclusiveUtc);
 
     Task<Event> AddAsync(Event ev);
     Task<Event> UpdateAsync(Event ev);
@@ -20,7 +20,6 @@ public interface IEventRepository
 public sealed class EventRepository : IEventRepository
 {
     private readonly AppDbContext _db;
-
     public EventRepository(AppDbContext db) => _db = db;
 
     public Task<Event?> GetByIdAsync(string id)
@@ -29,17 +28,17 @@ public sealed class EventRepository : IEventRepository
     public Task<Event?> GetTrackedByIdAsync(string id)
         => _db.Events.FirstOrDefaultAsync(e => e.Id == id);
 
-    public async Task<IReadOnlyList<Event>> ListUpcomingAsync(DateTimeOffset fromInclusive, int take)
+    public async Task<IReadOnlyList<Event>> ListUpcomingAsync(DateTime fromInclusiveUtc, int take)
         => await _db.Events.AsNoTracking()
-            .Where(e => e.StartsAt >= fromInclusive)
-            .OrderBy(e => e.StartsAt)
+            .Where(e => e.StartsAtUtc >= fromInclusiveUtc)
+            .OrderBy(e => e.StartsAtUtc)
             .Take(take)
             .ToListAsync();
 
-    public async Task<IReadOnlyList<Event>> ListRangeAsync(DateTimeOffset fromInclusive, DateTimeOffset toInclusive)
+    public async Task<IReadOnlyList<Event>> ListRangeAsync(DateTime fromInclusiveUtc, DateTime toInclusiveUtc)
         => await _db.Events.AsNoTracking()
-            .Where(e => e.StartsAt >= fromInclusive && e.StartsAt <= toInclusive)
-            .OrderBy(e => e.StartsAt)
+            .Where(e => e.StartsAtUtc >= fromInclusiveUtc && e.StartsAtUtc <= toInclusiveUtc)
+            .OrderBy(e => e.StartsAtUtc)
             .ToListAsync();
 
     public async Task<Event> AddAsync(Event ev)
