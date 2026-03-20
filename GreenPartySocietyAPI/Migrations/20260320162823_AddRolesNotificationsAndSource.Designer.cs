@@ -3,6 +3,7 @@ using System;
 using GreenPartySocietyAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GreenPartySocietyAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260320162823_AddRolesNotificationsAndSource")]
+    partial class AddRolesNotificationsAndSource
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
@@ -137,13 +140,6 @@ namespace GreenPartySocietyAPI.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT")
                         .HasDefaultValue("Member");
-
-                    b.Property<string>("SubstackUrl")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT")
-                        .HasDefaultValue("");
 
                     b.HasKey("Id");
 

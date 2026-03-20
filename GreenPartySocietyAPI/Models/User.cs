@@ -17,6 +17,9 @@
 
         public string Email { get; set; } = "";
         public string Password { get; set; } = "";
+        public string Role { get; set; } = UserRole.Member;
+        public string Bio { get; set; } = "";
+        public string SubstackUrl { get; set; } = "";
 
         public User() { }
 

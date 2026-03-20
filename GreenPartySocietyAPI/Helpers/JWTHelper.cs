@@ -7,7 +7,7 @@ namespace GreenPartySocietyAPI.Helpers
 {
     public static class JwtTokenHelper
     {
-        public static string GenerateToken(string id, string email, string username, string key)
+        public static string GenerateToken(string id, string email, string username, string role, string key)
         {
             var tokenHandler = new JwtSecurityTokenHandler()
             {
@@ -19,7 +19,8 @@ namespace GreenPartySocietyAPI.Helpers
             {
                 new Claim("id", id),
                 new Claim("email", email),
-                new Claim("username", username)
+                new Claim("username", username),
+                new Claim("role", role)
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor

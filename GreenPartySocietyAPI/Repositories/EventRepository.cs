@@ -1,4 +1,4 @@
-﻿using GreenPartySocietyAPI.Data;
+using GreenPartySocietyAPI.Data;
 using GreenPartySocietyAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +15,7 @@ public interface IEventRepository
     Task<Event> AddAsync(Event ev);
     Task<Event> UpdateAsync(Event ev);
     Task<bool> DeleteAsync(string id);
+    Task<bool> ExistsByExternalIdAsync(string externalId);
 }
 
 public sealed class EventRepository : IEventRepository
@@ -64,4 +65,7 @@ public sealed class EventRepository : IEventRepository
         await _db.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> ExistsByExternalIdAsync(string externalId)
+        => await _db.Events.AnyAsync(e => e.ExternalId == externalId);
 }

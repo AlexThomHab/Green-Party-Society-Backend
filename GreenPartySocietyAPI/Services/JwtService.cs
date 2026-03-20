@@ -7,7 +7,7 @@ namespace GreenPartySocietyAPI.Services
 {
     public interface IJwtService
     {
-        string Generate(string id, string email, string username);
+        string Generate(string id, string email, string username, string role);
         IDictionary<string, string>? GetClaims(string jwt);
     }
 
@@ -20,8 +20,8 @@ namespace GreenPartySocietyAPI.Services
             _key = config["Jwt:Key"] ?? throw new Exception("JWT key missing");
         }
 
-        public string Generate(string id, string email, string username)
-            => JwtTokenHelper.GenerateToken(id, email, username, _key);
+        public string Generate(string id, string email, string username, string role)
+            => JwtTokenHelper.GenerateToken(id, email, username, role, _key);
 
         public IDictionary<string, string>? GetClaims(string jwt)
         {

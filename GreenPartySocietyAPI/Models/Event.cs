@@ -14,4 +14,7 @@ public sealed class Event
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
+
+    public string Source { get; set; } = "manual";   // "manual" | "instagram_ai"
+    public string? ExternalId { get; set; }            // Instagram post ID for dedup
 }

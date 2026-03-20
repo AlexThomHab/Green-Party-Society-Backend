@@ -1,4 +1,4 @@
-﻿using GreenPartySocietyAPI.Models;
+using GreenPartySocietyAPI.Models;
 using GreenPartySocietyAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,7 +18,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         try
         {
@@ -30,23 +30,21 @@ public class AuthController : ControllerBase
             if (!result.Success)
                 return Unauthorized(new ProblemDetails { Title = "Unauthorized", Detail = "Invalid email or password." });
 
-
             var user = result.Data!;
             var token = _jwtService.Generate(
                 user.Id,
                 user.Email,
-                $"{user.FirstName} {user.LastName}"
+                $"{user.FirstName} {user.LastName}",
+                user.Role
             );
 
-
-            return Ok(new TokenResponse { Token = token });
+            return Ok(new { token, userId = user.Id, role = user.Role, firstName = user.FirstName, lastName = user.LastName, email = user.Email });
         }
         catch (Exception ex)
         {
             return StatusCode(500, new ProblemDetails { Title = "Server Error", Detail = ex.Message });
         }
     }
-
 
     [HttpPost("register")]
     public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
@@ -97,7 +95,6 @@ public class AuthController : ControllerBase
         public string LastName { get; set; } = "";
     }
 
-
     public sealed class RegisterRequest
     {
         public string FirstName { get; set; } = "";
@@ -111,5 +108,4 @@ public class AuthController : ControllerBase
         public string Email { get; set; } = "";
         public string Password { get; set; } = "";
     }
-
 }

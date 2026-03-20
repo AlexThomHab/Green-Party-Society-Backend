@@ -1,4 +1,4 @@
-﻿using GreenPartySocietyAPI.Data;
+using GreenPartySocietyAPI.Data;
 using GreenPartySocietyAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +10,8 @@ public interface IUserRepository
     Task<User> AddUserAsync(User user);
     Task<User?> GetByEmailAsync(string email);
     Task<User?> GetByIdAsync(string id);
+    Task<User> UpdateAsync(User user);
+    Task<IReadOnlyList<User>> GetAllAsync();
 }
 
 public class UserRepository : IUserRepository
@@ -43,5 +45,17 @@ public class UserRepository : IUserRepository
     {
         return await _db.Users
             .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
+    public async Task<User> UpdateAsync(User user)
+    {
+        _db.Users.Update(user);
+        await _db.SaveChangesAsync();
+        return user;
+    }
+
+    public async Task<IReadOnlyList<User>> GetAllAsync()
+    {
+        return await _db.Users.AsNoTracking().OrderBy(u => u.LastName).ToListAsync();
     }
 }

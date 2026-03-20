@@ -1,4 +1,4 @@
-﻿using GreenPartySocietyAPI.Models;
+using GreenPartySocietyAPI.Models;
 using GreenPartySocietyAPI.Repositories;
 
 namespace GreenPartySocietyAPI.Services;
@@ -12,6 +12,7 @@ public interface IEventService
     Task<ServiceResult<EventDto>> CreateAsync(CreateEventRequest request);
     Task<ServiceResult<EventDto>> UpdateAsync(string id, UpdateEventRequest request);
     Task<ServiceResult<bool>> DeleteAsync(string id);
+    Task<ServiceResult<EventDto>> CreateFromExternalAsync(string title, string description, DateTime startsAt, DateTime? endsAt, string location, string source, string externalId);
 }
 
 public sealed class EventService : IEventService
@@ -61,6 +62,7 @@ public sealed class EventService : IEventService
             StartsAtUtc = request.StartsAt,
             EndsAtUtc = request.EndsAt,
             Location = (request.Location ?? "").Trim(),
+            Source = request.Source ?? "manual",
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow
         };
@@ -74,7 +76,23 @@ public sealed class EventService : IEventService
         if (string.IsNullOrWhiteSpace(id))
             return ServiceResult<EventDto>.BadRequest("Invalid id");
 
-        return ServiceResult<EventDto>.BadRequest("Update not implemented: add a tracked fetch method (see note below).");
+        var ev = await _repo.GetTrackedByIdAsync(id);
+        if (ev is null)
+            return ServiceResult<EventDto>.BadRequest("Event not found");
+
+        var validation = Validate(request.Title, request.Description, request.StartsAt, request.EndsAt, request.Location);
+        if (validation is not null)
+            return ServiceResult<EventDto>.BadRequest(validation);
+
+        ev.Title = request.Title.Trim();
+        ev.Description = (request.Description ?? "").Trim();
+        ev.StartsAtUtc = request.StartsAt;
+        ev.EndsAtUtc = request.EndsAt;
+        ev.Location = (request.Location ?? "").Trim();
+        ev.UpdatedAtUtc = DateTime.UtcNow;
+
+        var updated = await _repo.UpdateAsync(ev);
+        return ServiceResult<EventDto>.Ok(ToDto(updated));
     }
 
     public async Task<ServiceResult<bool>> DeleteAsync(string id)
@@ -89,7 +107,29 @@ public sealed class EventService : IEventService
         return ServiceResult<bool>.Ok(true);
     }
 
-    private static string? Validate(string title, string? description, DateTimeOffset startsAt, DateTimeOffset? endsAt, string? location)
+    public async Task<ServiceResult<EventDto>> CreateFromExternalAsync(string title, string description, DateTime startsAt, DateTime? endsAt, string location, string source, string externalId)
+    {
+        if (await _repo.ExistsByExternalIdAsync(externalId))
+            return ServiceResult<EventDto>.BadRequest("Duplicate event");
+
+        var ev = new Event
+        {
+            Title = title.Trim(),
+            Description = description.Trim(),
+            StartsAtUtc = startsAt,
+            EndsAtUtc = endsAt,
+            Location = location.Trim(),
+            Source = source,
+            ExternalId = externalId,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
+        };
+
+        var created = await _repo.AddAsync(ev);
+        return ServiceResult<EventDto>.Ok(ToDto(created));
+    }
+
+    private static string? Validate(string title, string? description, DateTime startsAt, DateTime? endsAt, string? location)
     {
         if (string.IsNullOrWhiteSpace(title))
             return "Title is required.";
@@ -116,7 +156,8 @@ public sealed class EventService : IEventService
         Description = e.Description,
         StartsAt = e.StartsAtUtc,
         EndsAt = e.EndsAtUtc,
-        Location = e.Location
+        Location = e.Location,
+        Source = e.Source
     };
 }
 
@@ -128,6 +169,7 @@ public sealed class EventDto
     public DateTime StartsAt { get; set; }
     public DateTime? EndsAt { get; set; }
     public string Location { get; set; } = "";
+    public string Source { get; set; } = "manual";
 }
 
 public sealed class CreateEventRequest
@@ -137,13 +179,14 @@ public sealed class CreateEventRequest
     public DateTime StartsAt { get; set; }
     public DateTime? EndsAt { get; set; }
     public string? Location { get; set; }
+    public string Source { get; set; } = "manual";
 }
 
 public sealed class UpdateEventRequest
 {
     public string Title { get; set; } = "";
     public string? Description { get; set; }
-    public DateTimeOffset StartsAt { get; set; }
-    public DateTimeOffset? EndsAt { get; set; }
+    public DateTime StartsAt { get; set; }
+    public DateTime? EndsAt { get; set; }
     public string? Location { get; set; }
 }
